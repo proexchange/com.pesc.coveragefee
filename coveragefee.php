@@ -100,7 +100,7 @@ function coveragefee_civicrm_managed(&$entities) {
       'is_reserved' => 0,
       'name' => "event_coverage_fee"
     ]
-  );
+  ];
 
   $entities[] = [
     'module' => 'com.pesc.coveragefee',
@@ -130,7 +130,7 @@ function coveragefee_civicrm_managed(&$entities) {
       'is_reserved' => 0,
       'name' => "contribution_coverage_fee"
     ]
-  );
+  ];
 
   $entities[] = [
     'module' => 'com.pesc.coveragefee',
