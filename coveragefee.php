@@ -98,6 +98,7 @@ function coveragefee_civicrm_managed(&$entities) {
       'collapse_display' => 0,
       'collapse_adv_display' => 1,
       'is_reserved' => 0,
+      'is_public' => 0,
       'name' => "event_coverage_fee"
     ]
   ];
@@ -128,6 +129,7 @@ function coveragefee_civicrm_managed(&$entities) {
       'collapse_display' => 0,
       'collapse_adv_display' => 1,
       'is_reserved' => 0,
+      'is_public' => 0,
       'name' => "contribution_coverage_fee"
     ]
   ];
@@ -221,3 +223,44 @@ function coveragefee_civicrm_navigationMenu(&$menu) {
   ));
   _coveragefee_civix_navigationMenu($menu);
 } // */
+
+/**
+ * Implements hook_civicrm_buildForm().
+ *
+ * This hook is invoked when building a form. It can be used to set the
+ * default values of a form element, to change form elements attributes,
+ * and to add new fields to a form.
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_buildForm
+ *
+function coveragefee_civicrm_buildForm($formName, &$form) {
+
+} // */
+
+/**
+ * Implements hook_civicrm_pageRun().
+ *
+ * This hook is called before a CiviCRM page is rendered.
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_pageRun
+ */
+function coveragefee_civicrm_pageRun(&$page) {
+  /*
+   * ...actually move this to buildForm hook
+   */
+
+  $pageName = $page->getVar('_name');
+  $eventId = $page->getVar('_id');
+  if ($pageName == 'CRM_Event_Page_EventInfo') {
+    try {
+      $percentage = civicrm_api3('CustomValue', 'getsingle', [
+        'entity_id' => $eventId,
+        'return' => ["event_coverage_fee:event_coverage_fee_percentage"]
+      ])['latest'];
+    }
+    catch (CiviCRM_API3_Exception $e) {
+      $errorMessage = $e->getMessage();
+      return;
+    }
+  }
+}
