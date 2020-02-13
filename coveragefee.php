@@ -6,7 +6,7 @@ use CRM_Coveragefee_ExtensionUtil as E;
 /**
  * Implements hook_civicrm_config().
  *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_config/ 
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_config/
  */
 function coveragefee_civicrm_config(&$config) {
   _coveragefee_civix_civicrm_config($config);
@@ -85,6 +85,66 @@ function coveragefee_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  */
 function coveragefee_civicrm_managed(&$entities) {
   _coveragefee_civix_civicrm_managed($entities);
+
+  // Coverage Fee field for Event Pages
+  $entities[] = [
+    'module' => 'com.pesc.coveragefee',
+    'entity' => 'CustomGroup',
+    'params' => [
+      'version' => 3,
+      'title' => "Event Coverage Fee",
+      'extends' => "Event",
+      'style' => "Inline",
+      'collapse_display' => 0,
+      'collapse_adv_display' => 1,
+      'is_reserved' => 0,
+      'name' => "event_coverage_fee"
+    ]
+  );
+
+  $entities[] = [
+    'module' => 'com.pesc.coveragefee',
+    'entity' => 'CustomField',
+    'params' => [
+      'version' => 3,
+      'custom_group_id' => "event_coverage_fee",
+      'name' => "event_coverage_fee_percentage",
+      'label' => "Event Coverage Fee (percentage)",
+      'data_type' => "Int",
+      'is_view' => 0,
+      'html_type' => "Text"
+    ]
+  ];
+
+  // Coverage Fee field for Contribution Pages
+  $entities[] = [
+    'module' => 'com.pesc.coveragefee',
+    'entity' => 'CustomGroup',
+    'params' => [
+      'version' => 3,
+      'title' => "Contribution Coverage Fee",
+      'extends' => "Contribution",
+      'style' => "Inline",
+      'collapse_display' => 0,
+      'collapse_adv_display' => 1,
+      'is_reserved' => 0,
+      'name' => "contribution_coverage_fee"
+    ]
+  );
+
+  $entities[] = [
+    'module' => 'com.pesc.coveragefee',
+    'entity' => 'CustomField',
+    'params' => [
+      'version' => 3,
+      'custom_group_id' => "contribution_coverage_fee",
+      'name' => "contribution_coverage_fee_percentage",
+      'label' => "Contribution Coverage Fee (percentage)",
+      'data_type' => "Int",
+      'is_view' => 0,
+      'html_type' => "Text"
+    ]
+  ];
 }
 
 /**
