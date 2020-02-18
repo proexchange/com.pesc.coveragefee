@@ -82,10 +82,11 @@ function coveragefee_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  * is installed, disabled, uninstalled.
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed
- */
+ *
 function coveragefee_civicrm_managed(&$entities) {
   _coveragefee_civix_civicrm_managed($entities);
 }
+// */
 
 /**
  * Implements hook_civicrm_caseTypes().
