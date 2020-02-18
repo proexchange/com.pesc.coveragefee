@@ -85,68 +85,6 @@ function coveragefee_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  */
 function coveragefee_civicrm_managed(&$entities) {
   _coveragefee_civix_civicrm_managed($entities);
-
-  // Coverage Fee field for Event Pages
-  $entities[] = [
-    'module' => 'com.pesc.coveragefee',
-    'entity' => 'CustomGroup',
-    'params' => [
-      'version' => 3,
-      'title' => "Event Coverage Fee",
-      'extends' => "Event",
-      'style' => "Inline",
-      'collapse_display' => 0,
-      'collapse_adv_display' => 1,
-      'is_reserved' => 0,
-      'is_public' => 0,
-      'name' => "event_coverage_fee"
-    ]
-  ];
-
-  $entities[] = [
-    'module' => 'com.pesc.coveragefee',
-    'entity' => 'CustomField',
-    'params' => [
-      'version' => 3,
-      'custom_group_id' => "event_coverage_fee",
-      'name' => "event_coverage_fee_percentage",
-      'label' => "Event Coverage Fee (percentage)",
-      'data_type' => "Int",
-      'is_view' => 0,
-      'html_type' => "Text"
-    ]
-  ];
-
-  // Coverage Fee field for Contribution Pages
-  $entities[] = [
-    'module' => 'com.pesc.coveragefee',
-    'entity' => 'CustomGroup',
-    'params' => [
-      'version' => 3,
-      'title' => "Contribution Coverage Fee",
-      'extends' => "Contribution",
-      'style' => "Inline",
-      'collapse_display' => 0,
-      'collapse_adv_display' => 1,
-      'is_reserved' => 0,
-      'is_public' => 0,
-      'name' => "contribution_coverage_fee"
-    ]
-  ];
-
-  $entities[] = [
-    'module' => 'com.pesc.coveragefee',
-    'entity' => 'CustomField',
-    'params' => [
-      'version' => 3,
-      'custom_group_id' => "contribution_coverage_fee",
-      'name' => "contribution_coverage_fee_percentage",
-      'label' => "Contribution Coverage Fee (percentage)",
-      'data_type' => "Int",
-      'is_view' => 0,
-      'html_type' => "Text"
-    ]
-  ];
 }
 
 /**
@@ -224,43 +162,74 @@ function coveragefee_civicrm_navigationMenu(&$menu) {
   _coveragefee_civix_navigationMenu($menu);
 } // */
 
-/**
- * Implements hook_civicrm_buildForm().
- *
- * This hook is invoked when building a form. It can be used to set the
- * default values of a form element, to change form elements attributes,
- * and to add new fields to a form.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_buildForm
- *
+
 function coveragefee_civicrm_buildForm($formName, &$form) {
+  $formId = (int)$form->get('id');
 
-} // */
+  // Event Registration Form
+  if(is_a($form, 'CRM_Event_Form_Registration_Register')) {
+    if($formId === 8) {
+      $templatePath = realpath(dirname(__FILE__)."/templates");
+      CRM_Core_Region::instance('price-set-1')->add([
+        'template' => "{$templatePath}/testfield.tpl",
+        'name' => 'test_field'
+      ]);
 
-/**
- * Implements hook_civicrm_pageRun().
- *
- * This hook is called before a CiviCRM page is rendered.
- *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_pageRun
- */
-function coveragefee_civicrm_pageRun(&$page) {
-  /*
-   * ...actually move this to buildForm hook
-   */
+      $form->add('text', 'testfield');
 
-  $pageName = $page->getVar('_name');
-  $eventId = $page->getVar('_id');
-  if ($pageName == 'CRM_Event_Page_EventInfo') {
-    try {
-      $percentage = civicrm_api3('CustomValue', 'getsingle', [
-        'entity_id' => $eventId,
-        'return' => ["event_coverage_fee:event_coverage_fee_percentage"]
-      ])['latest'];
+      $errorMessage = $form->get('testfieldCodeErrorMsg');
+      if ($errorMessage) {
+        $form->setElementError('testfield', $errorMessage);
+      }
+      $form->set('testfieldCodeErrorMsg', NULL);
+      $form->assign('testfieldElements', [ 'testfield' ]);
     }
-    catch (CiviCRM_API3_Exception $e) {
-      $errorMessage = $e->getMessage();
-      return;
+  }
+
+  // Event Confirmation Form
+  else if(is_a($form, 'CRM_Event_Form_Registration_Confirm')) {
+    if($formId === 8) { }
+  }
+
+  // Contribution Form
+  else if(is_a($form, 'CRM_Contribute_Form_Contribution_Main')) {
+    if($formId === 3) { }
+  }
+}
+
+function coveragefee_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
+  $formId = (int)$form->get('id');
+
+  if(is_a($form, 'CRM_Event_Form_Registration_Register')) {
+    if($formId === 8) {
+      $testfieldInfo = $form->get('_testfieldInfo');
+      if ($testfieldInfo && gettype($testfieldInfo) !== 'integer') {
+        $errors['testfield'] = E::ts('The testfield must be a number.');
+        return;
+      }
     }
   }
 }
+
+/*
+function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
+  if ((!$form->getVar('_action')
+        || ($form->getVar('_action') & CRM_Core_Action::PREVIEW)
+        || ($form->getVar('_action') & CRM_Core_Action::ADD)
+        || ($form->getVar('_action') & CRM_Core_Action::UPDATE)
+      )
+    && !empty($amounts) && is_array($amounts) &&
+      ($pageType == 'event')) {
+    $form->set('_testfieldInfo', '123');
+  }
+}
+*/
+
+function coveragefee_civicrm_preProcess($formName, $form) {
+  $formId = (int)$form->get('id');
+
+  if(is_a($form, 'CRM_Event_Form_Registration_Register')) {
+    if($formId === 8) { }
+  }
+}
+
