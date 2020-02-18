@@ -124,7 +124,7 @@ function coveragefee_civicrm_managed(&$entities) {
     'params' => [
       'version' => 3,
       'title' => "Contribution Coverage Fee",
-      'extends' => "Contribution",
+      'extends' => "ContributionPage",
       'style' => "Inline",
       'collapse_display' => 0,
       'collapse_adv_display' => 1,
