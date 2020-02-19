@@ -1,7 +1,5 @@
 # com.pesc.coveragefee
 
-![Screenshot](/images/screenshot.png)
-
 (*FIXME: In one or two paragraphs, describe what the extension does and why one would download it. *)
 
 The extension is licensed under [MIT](LICENSE.txt).
