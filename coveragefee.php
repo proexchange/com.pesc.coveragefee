@@ -82,11 +82,10 @@ function coveragefee_civicrm_upgrade($op, CRM_Queue_Queue $queue = NULL) {
  * is installed, disabled, uninstalled.
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_managed
- *
+ */
 function coveragefee_civicrm_managed(&$entities) {
   _coveragefee_civix_civicrm_managed($entities);
 }
-// */
 
 /**
  * Implements hook_civicrm_caseTypes().
@@ -163,6 +162,55 @@ function coveragefee_civicrm_navigationMenu(&$menu) {
   _coveragefee_civix_navigationMenu($menu);
 } // */
 
+function coveragefee_civicrm_buildAmount($pageType, &$form, &$amount) {
+  if (!empty($form->get('mid'))) {
+    // Don't apply pro-rated fees to renewals
+    return;
+  }
+
+  //sample to modify priceset fee
+  $priceSetId = $form->get('priceSetId');
+  if (!empty($priceSetId)) {
+    $feeBlock = &$amount;
+    if (!is_array($feeBlock) || empty($feeBlock)) {
+      return;
+    }
+
+    if ($pageType == 'event') {
+      // pro-rata membership per month
+      // membership year is from 1st Jan->31st Dec
+      // Subtract 1/12 per month so in Jan you pay full amount,
+      //  in Dec you pay 1/12
+      // 12 months in year, min 1 month so subtract current numeric month from 13 (gives 12 in Jan, 1 in December)
+      $monthNum = date('n');
+      $monthsToPay = 13-$monthNum;
+
+      foreach ($feeBlock as &$fee) {
+        if (!is_array($fee['options'])) {
+          continue;
+        }
+        foreach ($fee['options'] as &$option) {
+          // We only have one amount for each membership, so this code may be overkill,
+          // as it checks every option displayed (and there is only one).
+          if ($option['amount'] > 0) {
+            // Only pro-rata paid memberships!
+            $option['amount'] = $option['amount'] * ($monthsToPay / 12);
+            if ($monthsToPay == 1) {
+              $option['label'] .= ' - Pro-rata: Dec only';
+            }
+            elseif ($monthsToPay < 12) {
+              $dateObj = DateTime::createFromFormat('!m', $monthNum);
+              $monthName = $dateObj->format('M');
+              $option['label'] .= ' - Pro-rata: ' . $monthName . ' to Dec';
+            }
+          }
+        }
+      }
+      // FIXME: Somewhere between 4.7.15 and 4.7.23 the above stopped working and we have to do the following to make the confirm page show the correct amount.
+      $form->_priceSet['fields'] = $feeBlock;
+    }
+  }
+}
 
 function coveragefee_civicrm_buildForm($formName, &$form) {
   $formId = (int)$form->get('id');
@@ -173,23 +221,28 @@ function coveragefee_civicrm_buildForm($formName, &$form) {
       $templatePath = realpath(dirname(__FILE__)."/templates");
       CRM_Core_Region::instance('price-set-1')->add([
         'template' => "{$templatePath}/testfield.tpl",
-        'name' => 'test_field'
+        'name' => 'merchant_fee'
       ]);
 
-      $form->add('text', 'testfield');
-
-      $errorMessage = $form->get('testfieldCodeErrorMsg');
+      // $form->add('text', 'merchant_fee');
+      $form->addCheckBox('merchant_fee', 'Merchant Fee', [ 'Merchant Fee (3%)' => 1 ]);
+/*
+      $errorMessage = $form->get('merchantFeeCodeErrorMsg');
       if ($errorMessage) {
-        $form->setElementError('testfield', $errorMessage);
+        $form->setElementError('merchantFee', $errorMessage);
       }
-      $form->set('testfieldCodeErrorMsg', NULL);
-      $form->assign('testfieldElements', [ 'testfield' ]);
+      $form->set('merchantFeeCodeErrorMsg', NULL);
+*/
+      $form->assign('merchantFeeElements', [ 'merchant_fee' ]);
     }
   }
 
   // Event Confirmation Form
   else if(is_a($form, 'CRM_Event_Form_Registration_Confirm')) {
-    if($formId === 8) { }
+    if($formId === 8) {
+      $params = $form->get('params')[0];
+      $applyMerchantFee = isset($params['merchant_fee']) ? true : false;
+    }
   }
 
   // Contribution Form
@@ -203,28 +256,19 @@ function coveragefee_civicrm_validateForm($formName, &$fields, &$files, &$form, 
 
   if(is_a($form, 'CRM_Event_Form_Registration_Register')) {
     if($formId === 8) {
-      $testfieldInfo = $form->get('_testfieldInfo');
-      if ($testfieldInfo && gettype($testfieldInfo) !== 'integer') {
-        $errors['testfield'] = E::ts('The testfield must be a number.');
+/*
+echo '<pre>';
+print_r($fields);
+die();
+      $merchantFeeInfo = $form->get('_merchantFeeInfo');
+      if ($merchantFeeInfo && gettype($merchantFeeInfo) !== 'integer') {
+        $errors['merchantFee'] = E::ts('The merchant fee must be a number.');
         return;
       }
+*/
     }
   }
 }
-
-/*
-function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
-  if ((!$form->getVar('_action')
-        || ($form->getVar('_action') & CRM_Core_Action::PREVIEW)
-        || ($form->getVar('_action') & CRM_Core_Action::ADD)
-        || ($form->getVar('_action') & CRM_Core_Action::UPDATE)
-      )
-    && !empty($amounts) && is_array($amounts) &&
-      ($pageType == 'event')) {
-    $form->set('_testfieldInfo', '123');
-  }
-}
-*/
 
 function coveragefee_civicrm_preProcess($formName, $form) {
   $formId = (int)$form->get('id');
@@ -233,4 +277,3 @@ function coveragefee_civicrm_preProcess($formName, $form) {
     if($formId === 8) { }
   }
 }
-
