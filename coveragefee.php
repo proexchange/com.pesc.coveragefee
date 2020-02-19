@@ -197,10 +197,11 @@ function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
         foreach ($fee['options'] as $option_id => &$option) {
           $originalLabel = $originalAmounts[$fee_id]['options'][$option_id]['label'];
           $originalAmount = (float)$originalAmounts[$fee_id]['options'][$option_id]['amount'];
-          $label = "$originalLabel (Coverage Fee Applied: 3%)";
+          $label = "$originalLabel ( Coverage fee applied is 3% of $" . number_format($originalAmount, 2) . " )";
           $amount = $originalAmount + ($originalAmount * (float)($coverageFeePercentage / 100));
           $option['amount'] = $amount;
           $option['label'] = $label;
+          $option['fee_applied'] = TRUE;
         }
       }
     }
@@ -220,7 +221,7 @@ function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
 /**
  * Implements hook_civicrm_buildForm().
  *
- * If the event id of the form being loaded has coverage fee option
+ * If the event of the form being loaded has coverage fee option
  * enabled, modify the form to include the apply fee button. Only
  * display the button on the initial registration screen.
  *
@@ -252,22 +253,45 @@ function coveragefee_civicrm_buildForm($formName, &$form) {
     // @TODO: contribution forms
   }
 
+  $feeApplied = FALSE;
+  $amounts = $form->getVar('_feeBlock');
+  foreach ($amounts as $fee_id => &$fee) {
+    if (!is_array($fee['options'])) {
+      continue;
+    }
+    foreach ($fee['options'] as $option_id => &$option) {
+      if(isset($option['fee_applied']) && $option['fee_applied']) {
+        $feeApplied = TRUE;
+      }
+    }
+  }
+
   if ($addCoverageFeeField) {
-    _coveragefee_add_button_before_priceSet($form);
+    if ($feeApplied) {
+      _coveragefee_add_button_before_priceSet($form, 'remove');
+    }
+    else {
+      _coveragefee_add_button_before_priceSet($form);
+    }
   }
 }
 
-function _coveragefee_add_button_before_priceSet(&$form) {
-  CRM_Core_Region::instance('price-set-1')->add([
-    'template' => 'CRM/CoverageFee/coverageFeeButton.tpl',
-    'weight' => -1,
-    'type' => 'template',
-    'name' => 'coverage_fee'
-  ]);
-
-  $buttonName = $form->getButtonName('reload');
-  $form->addElement('submit', $buttonName, E::ts('Apply'), ['formnovalidate' => 1]);
-  $form->assign('coverageFeeElements', [ $buttonName ]);
+function _coveragefee_add_button_before_priceSet(&$form, $action = 'add') {
+  if($action === 'add') {
+    CRM_Core_Region::instance('price-set-1')->add([
+      'template' => 'CRM/CoverageFee/coverageFeeButton.tpl',
+      'weight' => -1,
+      'type' => 'template',
+      'name' => 'coverage_fee'
+    ]);
+  
+    $buttonName = $form->getButtonName('reload');
+    $form->addElement('submit', $buttonName, E::ts('Apply'), ['formnovalidate' => 1]);
+    $form->assign('coverageFeeElements', [ $buttonName ]);
+  }
+  else if($action == 'remove') {
+    // @TODO: add a remove fee button
+  }
 }
 
 /**
@@ -289,11 +313,12 @@ function coveragefee_civicrm_validateForm($formName, &$fields, &$files, &$form, 
     return;
   }
 
+  // _coverageFeeInfo is assigned in coveragefee_civicrm_buildAmount()
   $coverageFeeInfo = $form->get('_coverageFeeInfo');
 
-  echo '<pre>';
-  print_r($coverageFeeInfo);
-  print_r($form);
+  echo "<pre>$formName\n";
+  var_dump($coverageFeeInfo);
+  // why is $coverFeeInfo null.....
   die();
 
 }
