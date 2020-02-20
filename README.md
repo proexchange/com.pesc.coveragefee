@@ -1,7 +1,5 @@
 # com.pesc.coveragefee
 
-![Screenshot](/images/screenshot.png)
-
 (*FIXME: In one or two paragraphs, describe what the extension does and why one would download it. *)
 
 The extension is licensed under [MIT](LICENSE.txt).
@@ -22,7 +20,7 @@ install it with the command-line tool [cv](https://github.com/civicrm/cv).
 
 ```bash
 cd <extension-dir>
-cv dl com.pesc.coveragefee@https://github.com/FIXME/com.pesc.coveragefee/archive/master.zip
+cv dl com.pesc.coveragefee@https://github.com/proexchange/com.pesc.coveragefee/archive/master.zip
 ```
 
 ## Installation (CLI, Git)
@@ -31,7 +29,7 @@ Sysadmins and developers may clone the [Git](https://en.wikipedia.org/wiki/Git) 
 install it with the command-line tool [cv](https://github.com/civicrm/cv).
 
 ```bash
-git clone https://github.com/FIXME/com.pesc.coveragefee.git
+git clone https://github.com/proexchange/com.pesc.coveragefee.git
 cv en coveragefee
 ```
 
