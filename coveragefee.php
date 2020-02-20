@@ -181,15 +181,15 @@ function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
     $submit_values = $form->_submitValues;
 
     $form->set('coverageFeeInfo', NULL);
-    $coverageFeePercentage = 3;
+    $coverageFeePercentage = 1.5;
     $coverageFeeApplied = FALSE;
     $originalAmounts = $amounts;
 
     // if (true)
       // $coverageFeeApplied = TRUE;
 
-    if (array_key_exists('_qf_Register_reload', $submit_values))
-      $coverageFeeApplied = TRUE; 
+    // if (array_key_exists('_qf_Register_reload', $submit_values))
+      // $coverageFeeApplied = TRUE; 
 
     if($coverageFeeApplied) {
       CRM_Core_Session::setStatus(html_entity_decode('Thank you blah blah. Press the back button in your browser if you do not want to pay the coverage fee.'), '', 'no-popup');
@@ -203,7 +203,7 @@ CRM_Core_Session::setStatus(html_entity_decode('test3'), '', 'no-popup');
 CRM_Core_Session::setStatus(html_entity_decode('test4'), '', 'no-popup');
           $originalLabel = $originalAmounts[$fee_id]['options'][$option_id]['label'];
           $originalAmount = (float)$originalAmounts[$fee_id]['options'][$option_id]['amount'];
-          $label = "$originalLabel ( Coverage fee applied is 3% of $" . number_format($originalAmount, 2) . " )";
+          $label = "$originalLabel ( Coverage fee applied is 1.5% of $" . number_format($originalAmount, 2) . " )";
           $amount = $originalAmount + ($originalAmount * (float)($coverageFeePercentage / 100));
           $option['amount'] = $amount;
           $option['label'] = $label;
@@ -290,7 +290,6 @@ function _coveragefee_add_button_before_priceSet(&$form, $action = 'add') {
   if($action === 'add') {
     CRM_Core_Region::instance('price-set-1')->add([
       'template' => 'CRM/CoverageFee/coverageFeeButton.tpl',
-      'weight' => -1,
       'type' => 'template',
       'name' => 'coverage_fee'
     ]);
@@ -326,7 +325,7 @@ function coveragefee_civicrm_validateForm($formName, &$fields, &$files, &$form, 
   // _coverageFeeInfo is assigned in coveragefee_civicrm_buildAmount()
   $coverageFeeInfo = $form->get('coverageFeeInfo');
 
-  echo "<pre>$formName\n";
-  var_dump($coverageFeeInfo);
+  // echo "<pre>$formName\n";
+  // var_dump($coverageFeeInfo);
   // why is $coverFeeInfo null.....
 }
