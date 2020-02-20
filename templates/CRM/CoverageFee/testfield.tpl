@@ -6,8 +6,9 @@
   <div class="clear"></div>
 </div>
 
-{literal}
 <script type="text/javascript"> 
+{literal}
+/*
   document.addEventListener("DOMContentLoaded", function(event) {
     var percentage = parseFloat(3.00).toFixed(2);
     var total = parseFloat(document.querySelector("#pricesetTotal #pricevalue")
@@ -31,5 +32,6 @@
       }
     });
   });
+*/
 {/literal}
 </script>

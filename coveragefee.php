@@ -180,21 +180,24 @@ function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
     $values = $form->getVar('_values');
     $submit_values = $form->_submitValues;
 
-    $form->set('_coverageFeeInfo', NULL);
+    $form->set('coverageFeeInfo', NULL);
     $coverageFeePercentage = 3;
     $coverageFeeApplied = FALSE;
     $originalAmounts = $amounts;
 
-    if (array_key_exists('_qf_Register_reload', $submit_values))
+    if (true)
       $coverageFeeApplied = TRUE;
 
     if($coverageFeeApplied) {
       CRM_Core_Session::setStatus(html_entity_decode('Thank you blah blah. Press the back button in your browser if you do not want to pay the coverage fee.'), '', 'no-popup');
+CRM_Core_Session::setStatus(html_entity_decode('test3'), '', 'no-popup');
       foreach ($amounts as $fee_id => &$fee) {
         if (!is_array($fee['options'])) {
           continue;
         }
         foreach ($fee['options'] as $option_id => &$option) {
+
+CRM_Core_Session::setStatus(html_entity_decode('test4'), '', 'no-popup');
           $originalLabel = $originalAmounts[$fee_id]['options'][$option_id]['label'];
           $originalAmount = (float)$originalAmounts[$fee_id]['options'][$option_id]['amount'];
           $label = "$originalLabel ( Coverage fee applied is 3% of $" . number_format($originalAmount, 2) . " )";
@@ -206,16 +209,20 @@ function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
       }
     }
 
+CRM_Core_Session::setStatus(html_entity_decode('test5'), '', 'no-popup');
     if ($coverageFeeApplied) {
+CRM_Core_Session::setStatus(html_entity_decode('test6'), '', 'no-popup');
       if (!empty($priceset['fields'])) {
         $priceset['fields'] = $amounts;
         $form->setVar('_priceSet', $priceset);
       }
-      $form->set('_coverageFeeInfo', [
+      $form->set('coverageFeeInfo', [
         'percentage' => $coverageFeePercentage
       ]);
+CRM_Core_Session::setStatus(html_entity_decode('test7'), '', 'no-popup');
     }
   }
+CRM_Core_Session::setStatus(html_entity_decode('test8'), '', 'no-popup');
 }
 
 /**
@@ -314,11 +321,9 @@ function coveragefee_civicrm_validateForm($formName, &$fields, &$files, &$form, 
   }
 
   // _coverageFeeInfo is assigned in coveragefee_civicrm_buildAmount()
-  $coverageFeeInfo = $form->get('_coverageFeeInfo');
+  $coverageFeeInfo = $form->get('coverageFeeInfo');
 
   echo "<pre>$formName\n";
   var_dump($coverageFeeInfo);
   // why is $coverFeeInfo null.....
-  die();
-
 }
