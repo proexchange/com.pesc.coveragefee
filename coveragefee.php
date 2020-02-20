@@ -185,8 +185,11 @@ function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
     $coverageFeeApplied = FALSE;
     $originalAmounts = $amounts;
 
-    if (true)
-      $coverageFeeApplied = TRUE;
+    // if (true)
+      // $coverageFeeApplied = TRUE;
+
+    if (array_key_exists('_qf_Register_reload', $submit_values))
+      $coverageFeeApplied = TRUE; 
 
     if($coverageFeeApplied) {
       CRM_Core_Session::setStatus(html_entity_decode('Thank you blah blah. Press the back button in your browser if you do not want to pay the coverage fee.'), '', 'no-popup');
