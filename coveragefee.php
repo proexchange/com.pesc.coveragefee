@@ -134,13 +134,23 @@ function coveragefee_civicrm_entityTypes(&$entityTypes) {
   _coveragefee_civix_civicrm_entityTypes($entityTypes);
 }
 
+// --- Functions below this ship commented out. Uncomment as required. ---
+
+/**
+ * Implements hook_civicrm_preProcess().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_preProcess
+ *
+function coveragefee_civicrm_preProcess($formName, &$form) {
+
+} // */
+
 /**
  * Implements hook_civicrm_navigationMenu().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_navigationMenu
- */
+ *
 function coveragefee_civicrm_navigationMenu(&$menu) {
-/*
   _coveragefee_civix_insert_navigation_menu($menu, 'Mailings', array(
     'label' => E::ts('New subliminal message'),
     'name' => 'mailing_subliminal_message',
@@ -149,184 +159,56 @@ function coveragefee_civicrm_navigationMenu(&$menu) {
     'operator' => 'OR',
     'separator' => 0,
   ));
-*/
   _coveragefee_civix_navigationMenu($menu);
-}
+} // */
 
-/**
- * Implements hook_civicrm_buildAmount().
- *
- * If the event of the form being loaded has the coverage fee option
- * applied, calculate the fee and update the price and label.
- *
- * @param string $pageType
- * @param CRM_Core_Form $form
- * @param $amounts
- */
-function coveragefee_civicrm_buildAmount($pageType, &$form, &$amounts) {
-  $action = $form->getVar('_action') ? $form->getVar('_action') : NULL;
-
-  if ((!$action
-        || ($action & CRM_Core_Action::PREVIEW)
-        || ($action & CRM_Core_Action::ADD)
-        || ($action & CRM_Core_Action::UPDATE)
-      )
-    && !empty($amounts) && is_array($amounts) &&
-      ($pageType == 'event' || $pageType == 'contribute')) {
-
-    $event_id = $form->getVar('_eventId');
-    $priceset_id = $form->get('priceSetId');
-    $priceset = $form->get('priceSet');
-    $values = $form->getVar('_values');
-    $submit_values = $form->_submitValues;
-
-    $form->set('coverageFeeInfo', NULL);
-    $coverageFeePercentage = 1.5;
-    $coverageFeeApplied = FALSE;
-    $originalAmounts = $amounts;
-
-    // if (true)
-      // $coverageFeeApplied = TRUE;
-
-    // @TODO: need to find a new way to determine if coverageFeeApplied = true
-    if (array_key_exists('_qf_Register_reload', $submit_values))
-      $coverageFeeApplied = TRUE; 
-
-    if($coverageFeeApplied) {
-      CRM_Core_Session::setStatus(html_entity_decode('Thank you blah blah. Press the back button in your browser if you do not want to pay the coverage fee.'), '', 'no-popup');
-CRM_Core_Session::setStatus(html_entity_decode('test3'), '', 'no-popup');
-      foreach ($amounts as $fee_id => &$fee) {
-        if (!is_array($fee['options'])) {
-          continue;
-        }
-        foreach ($fee['options'] as $option_id => &$option) {
-
-CRM_Core_Session::setStatus(html_entity_decode('test4'), '', 'no-popup');
-          $originalLabel = $originalAmounts[$fee_id]['options'][$option_id]['label'];
-          $originalAmount = (float)$originalAmounts[$fee_id]['options'][$option_id]['amount'];
-          $label = "$originalLabel ( Coverage fee applied is 1.5% of $" . number_format($originalAmount, 2) . " )";
-          $amount = $originalAmount + ($originalAmount * (float)($coverageFeePercentage / 100));
-          $option['amount'] = $amount;
-          $option['label'] = $label;
-          $option['fee_applied'] = TRUE;
-        }
-      }
-    }
-
-CRM_Core_Session::setStatus(html_entity_decode('test5'), '', 'no-popup');
-    if ($coverageFeeApplied) {
-CRM_Core_Session::setStatus(html_entity_decode('test6'), '', 'no-popup');
-      if (!empty($priceset['fields'])) {
-        $priceset['fields'] = $amounts;
-        $form->setVar('_priceSet', $priceset);
-      }
-      $form->set('coverageFeeInfo', [
-        'percentage' => $coverageFeePercentage
-      ]);
-CRM_Core_Session::setStatus(html_entity_decode('test7'), '', 'no-popup');
-    }
-  }
-CRM_Core_Session::setStatus(html_entity_decode('test8'), '', 'no-popup');
-}
-
-/**
- * Implements hook_civicrm_buildForm().
- *
- * If the event of the form being loaded has coverage fee option
- * enabled, modify the form to include the apply fee button. Only
- * display the button on the initial registration screen.
- *
- * Works for events and contribution pages.
- *
- * @param string $formName
- * @param CRM_Core_Form $form
- * @return bool
- */
 function coveragefee_civicrm_buildForm($formName, &$form) {
-  if (!in_array($formName, [
-    'CRM_Event_Form_Registration_Register',
-    'CRM_Contribute_Form_Contribution_Main'
-  ])) {
-    return;
-  }
-
-  $addCoverageFeeField = FALSE; 
-
-  if(in_array($formName, [
-    'CRM_Event_Form_Registration_Register'
-  ])) {
-    $feeCalculator = new CRM_CoverageFee_FeeCalculator('event', $form->getVar('_eventId'));
-    $addCoverageFeeField = $feeCalculator->bShowCoverageFeeField();
-  }
-  else if(in_array($formName, [
-    'CRM_Contribute_Form_Contribution_Main'
-  ])) {
-    // @TODO: contribution forms
-  }
-
-  $feeApplied = FALSE;
-  $amounts = $form->getVar('_feeBlock');
-  foreach ($amounts as $fee_id => &$fee) {
-    if (!is_array($fee['options'])) {
-      continue;
-    }
-    foreach ($fee['options'] as $option_id => &$option) {
-      if(isset($option['fee_applied']) && $option['fee_applied']) {
-        $feeApplied = TRUE;
-      }
-    }
-  }
-
-  if ($addCoverageFeeField) {
-    if ($feeApplied) {
-      _coveragefee_add_button_before_priceSet($form, 'remove');
-    }
-    else {
-      _coveragefee_add_button_before_priceSet($form);
-    }
-  }
-}
-
-function _coveragefee_add_button_before_priceSet(&$form, $action = 'add') {
-  if($action === 'add') {
+  if(is_a($form, 'CRM_Event_Form_Registration_Register')) {
     CRM_Core_Region::instance('price-set-1')->add([
-      'template' => 'CRM/CoverageFee/coverageFeeButton.tpl',
-      'type' => 'template',
-      'name' => 'coverage_fee'
+      'template' => "testfield.tpl",
+      'name' => 'merchant_fee'
     ]);
-  
-    $buttonName = $form->getButtonName('reload');
-    $form->addElement('submit', $buttonName, E::ts('Apply'), ['formnovalidate' => 1]);
-    $form->assign('coverageFeeElements', [ $buttonName ]);
+
+    $form->addCheckBox('merchant_fee', 'Merchant Fee', [ 'Merchant Fee (3%)' => 1 ]);
+    $form->assign('merchantFeeElements', [ 'merchant_fee' ]);
   }
-  else if($action == 'remove') {
-    // @TODO: add a remove fee button
+  else if(is_a($form, 'CRM_Event_Form_Registration_Confirm')) {
+/*
+    $applyFee = isset($params[0]['merchant_fee']) ? true : false;
+
+    $params = $form->getVar('_params');
+    $lineitems = $form->getVar('_lineItem');
+    $amount = $form->getVar('_amount');
+    $priceSet = $form->getVar('_priceSet');
+    $values = $form->getVar('_values');
+
+    $params[0]['amount'] = 1337;
+    $lineitems[0][28]['unit_price'] = 1337.000000000;
+    $lineitems[0][28]['line_total'] = 1337;
+    $amount[0]['amount'] = 1337;
+    $priceSet['fields'][13]['options'][28]['amount'] = 1337.000000000;
+    $values['fee'][13]['options'][28]['amount'] = 1337.000000000;
+
+    $form->setVar('_totalAmount', 1337);
+    $form->setVar('_params', $params);
+    $form->setVar('_lineItem', $lineitems);
+    $form->setVar('_amount', $amount);
+    $form->setVar('_priceSet', $priceSet);
+    $form->setVar('_values', $values);
+
+    echo '<pre>';
+    print_r($form);
+    die();
+*/
   }
 }
 
-/**
- * Implements hook_civicrm_validateForm().
- *
- * Used in the initial event registration screen.
- *
- * @param string $formName
- * @param array $fields reference
- * @param array $files
- * @param CRM_Core_Form $form
- * @param $errors
- */
-function coveragefee_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
-  if (!in_array($formName, [
-    'CRM_Event_Form_Registration_Register',
-    'CRM_Contribute_Form_Contribution_Main'
-  ])) {
-    return;
-  }
+function coveragefee_civicrm_alterContent(&$content, $context, $tplName, &$object) {
+  if(!is_a($object, 'CRM_Event_Form_Registration_Confirm')) return;
 
-  // _coverageFeeInfo is assigned in coveragefee_civicrm_buildAmount()
-  $coverageFeeInfo = $form->get('coverageFeeInfo');
+  $params = $object->get('params');
+  $applyFee = isset($params[0]['merchant_fee']) ? true : false;
 
-  // echo "<pre>$formName\n";
-  // var_dump($coverageFeeInfo);
-  // why is $coverFeeInfo null.....
+  if($applyFee)
+    $content .= '<div id="applyMerchantFee">&nbsp;</div>';
 }
