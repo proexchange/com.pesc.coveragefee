@@ -165,7 +165,7 @@ function coveragefee_civicrm_navigationMenu(&$menu) {
 function coveragefee_civicrm_buildForm($formName, &$form) {
   if(is_a($form, 'CRM_Event_Form_Registration_Register')) {
     CRM_Core_Region::instance('price-set-1')->add([
-      'template' => "testfield.tpl",
+      'template' => "CRM/CoverageFee/testfield.tpl",
       'name' => 'merchant_fee'
     ]);
 
